@@ -18,7 +18,8 @@ it is an attendance system made of arduino uno, RFID card, DS1302, and lcd 1602
 5. comment those 3 lines and upload again
 6. Enjoy
 
-
+## What it does???
+Basically it is a demo , fun arduino and nfc based attendance system that u can tinker and play with, though it is not yet polished for actual use. in future we can add a sd card reader to store readings to extent it to a step further
 ## Demo
 
 - **Try it:** [https://breadboard.hackclub.com/share/14](https://breadboard.hackclub.com/share/14)
