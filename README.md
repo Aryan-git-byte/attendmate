@@ -2,7 +2,7 @@
 
 
 
-it is an attendance system made of arduino uno, RFID card, DS1302, A sd card reader and lcd 1602
+it is an attendance system made of arduino uno, RFID card, DS1302, and lcd 1602
 
 
 > Built in [Breadboard](https://breadboard.hackclub.com), a Hack Club program. This project took ~1 hours of work.
