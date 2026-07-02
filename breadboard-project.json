@@ -1,0 +1,450 @@
+{
+  "format": "velxio-project",
+  "version": 1,
+  "boards": [
+    {
+      "id": "arduino-uno",
+      "name": "Arduino Uno",
+      "boardKind": "arduino-uno",
+      "x": 65.27803758709058,
+      "y": 79.61388053780759,
+      "activeFileGroupId": "group-arduino-uno",
+      "languageMode": "arduino",
+      "serialBaudRate": 0
+    }
+  ],
+  "fileGroups": {
+    "group-arduino-uno": [
+      {
+        "name": "sketch.ino",
+        "content": "#include <SPI.h>\n#include <MFRC522.h>\n#include <DS1302.h>\n#include <Wire.h>\n#include <LiquidCrystal_I2C.h>\n\n#define RST_PIN 9\n#define SS_PIN 10\n#define CLK_PIN 7\n#define DAT_PIN 6\n#define RST_DS_PIN 5\n\nMFRC522 rfid(SS_PIN, RST_PIN);\nDS1302 rtc(RST_DS_PIN, DAT_PIN, CLK_PIN);\nLiquidCrystal_I2C lcd(0x27, 16, 2);\n\nstruct Card {\n  String uid;\n  String name;\n};\n\nCard knownCards[] = {\n  {\"DE AD BE EF\", \"Aryan\"},\n};\nint cardCount = 1;\n\nvoid setup() {\n  Serial.begin(9600);\n  SPI.begin();\n  rfid.PCD_Init();\n\n  lcd.init();\n  lcd.backlight();\n  lcd.setCursor(0, 0);\n  lcd.print(\"Attendance Sys\");\n  lcd.setCursor(0, 1);\n  lcd.print(\"Scan your card\");\n\n  rtc.setDOW(WEDNESDAY);\n  rtc.setTime(18, 53, 0);\n  rtc.setDate(1, 7, 2026);\n\n  Serial.println(\"Name,UID,Date,Time\");\n}\n\nString getUID() {\n  String uid = \"\";\n  for (byte i = 0; i < rfid.uid.size; i++) {\n    if (rfid.uid.uidByte[i] < 0x10) uid += \"0\";\n    uid += String(rfid.uid.uidByte[i], HEX);\n    if (i < rfid.uid.size - 1) uid += \" \";\n  }\n  uid.toUpperCase();\n  return uid;\n}\n\nString lookupName(String uid) {\n  for (int i = 0; i < cardCount; i++) {\n    if (knownCards[i].uid == uid) return knownCards[i].name;\n  }\n  return \"Unknown\";\n}\n\nvoid loop() {\n  if (!rfid.PICC_IsNewCardPresent() || !rfid.PICC_ReadCardSerial()) return;\n\n  String uid = getUID();\n  String name = lookupName(uid);\n\n  Time t = rtc.getTime();\n\n  String date = String(t.date) + \"/\" + String(t.mon) + \"/\" + String(t.yr);\n  String timeStr = String(t.hour) + \":\" +\n                   (t.min < 10 ? \"0\" : \"\") + String(t.min) + \":\" +\n                   (t.sec < 10 ? \"0\" : \"\") + String(t.sec);\n\n  Serial.println(name + \",\" + uid + \",\" + date + \",\" + timeStr);\n\n  lcd.clear();\n  lcd.setCursor(0, 0);\n  lcd.print(name.substring(0, 16));\n  lcd.setCursor(0, 1);\n  lcd.print(timeStr + \" \" + date);\n\n  delay(2000);\n\n  lcd.clear();\n  lcd.setCursor(0, 0);\n  lcd.print(\"Attendance Sys\");\n  lcd.setCursor(0, 1);\n  lcd.print(\"Scan your card\");\n\n  rfid.PICC_HaltA();\n  rfid.PCD_StopCrypto1();\n}"
+      }
+    ]
+  },
+  "components": [
+    {
+      "id": "lcd1602_i2c_1782384450439_9p8xuzrd1",
+      "metadataId": "lcd1602-i2c",
+      "x": 356.1598829947544,
+      "y": 331.94248398579845,
+      "properties": {
+        "i2cAddress": "0x27",
+        "pins": "i2c",
+        "background": "green",
+        "color": "black",
+        "backlight": true
+      }
+    },
+    {
+      "id": "ds1302_1782384512037_n2nrajtwa",
+      "metadataId": "ds1302",
+      "x": 440.5738738269597,
+      "y": -17.132532133358488,
+      "properties": {}
+    },
+    {
+      "id": "rc522_rfid_1782384808153_6op580ugf",
+      "metadataId": "rc522-rfid",
+      "x": -79.06525620512434,
+      "y": 110.91613609791055,
+      "properties": {
+        "cardPresent": "false",
+        "uid": "DE AD BE EF",
+        "version": "0x92"
+      }
+    }
+  ],
+  "wires": [
+    {
+      "waypoints": [
+        {
+          "x": 259.0256762820639,
+          "y": 346.45042540849164
+        },
+        {
+          "x": 259.6988093868647,
+          "y": 372.70261649572126
+        }
+      ],
+      "id": "wire-1782384472467",
+      "start": {
+        "componentId": "arduino-uno",
+        "pinName": "GND.3",
+        "x": 244.27803758709058,
+        "y": 271.1138805378076
+      },
+      "end": {
+        "componentId": "lcd1602_i2c_1782384450439_9p8xuzrd1",
+        "pinName": "GND",
+        "x": 366.1598829947544,
+        "y": 369.94248398579845
+      },
+      "color": "#000000"
+    },
+    {
+      "waypoints": [],
+      "id": "wire-1782384480294",
+      "start": {
+        "componentId": "lcd1602_i2c_1782384450439_9p8xuzrd1",
+        "pinName": "VCC",
+        "x": 366.1598829947544,
+        "y": 379.44248398579845
+      },
+      "end": {
+        "componentId": "arduino-uno",
+        "pinName": "5V",
+        "x": 225.27803758709058,
+        "y": 271.1138805378076
+      },
+      "color": "#cc0000"
+    },
+    {
+      "waypoints": [
+        {
+          "x": 326.76545560879094,
+          "y": 271.5
+        },
+        {
+          "x": 326.76545560879094,
+          "y": 388.94248398579845
+        }
+      ],
+      "id": "wire-1782384492691",
+      "start": {
+        "componentId": "arduino-uno",
+        "pinName": "A4",
+        "x": 311.2780375870906,
+        "y": 271.1138805378076
+      },
+      "end": {
+        "componentId": "lcd1602_i2c_1782384450439_9p8xuzrd1",
+        "pinName": "SDA",
+        "x": 366.1598829947544,
+        "y": 388.94248398579845
+      },
+      "color": "#00FFFF"
+    },
+    {
+      "waypoints": [
+        {
+          "x": 335.5,
+          "y": 399.4667797535027
+        },
+        {
+          "x": 366.1598829947544,
+          "y": 399.4667797535027
+        }
+      ],
+      "id": "wire-1782384495225",
+      "start": {
+        "componentId": "arduino-uno",
+        "pinName": "A5",
+        "x": 320.7780375870906,
+        "y": 271.1138805378076
+      },
+      "end": {
+        "componentId": "lcd1602_i2c_1782384450439_9p8xuzrd1",
+        "pinName": "SCL",
+        "x": 366.1598829947544,
+        "y": 398.44248398579845
+      },
+      "color": "#22c55e"
+    },
+    {
+      "waypoints": [
+        {
+          "x": 413.0389282344988,
+          "y": 192.04893873284058
+        }
+      ],
+      "id": "wire-1782384611812",
+      "start": {
+        "componentId": "ds1302_1782384512037_n2nrajtwa",
+        "pinName": "VCC",
+        "x": 460.5738738269597,
+        "y": 64.8674678666415
+      },
+      "end": {
+        "componentId": "arduino-uno",
+        "pinName": "5V",
+        "x": 225.27803758709058,
+        "y": 271.1138805378076
+      },
+      "color": "#cc0000"
+    },
+    {
+      "waypoints": [
+        {
+          "x": 265.77114192254,
+          "y": 220.93879155001912
+        }
+      ],
+      "id": "wire-1782384616410",
+      "start": {
+        "componentId": "arduino-uno",
+        "pinName": "GND.3",
+        "x": 244.27803758709058,
+        "y": 271.1138805378076
+      },
+      "end": {
+        "componentId": "ds1302_1782384512037_n2nrajtwa",
+        "pinName": "GND",
+        "x": 476.5738738269597,
+        "y": 64.8674678666415
+      },
+      "color": "#000000"
+    },
+    {
+      "waypoints": [
+        {
+          "x": 492.5738738269597,
+          "y": 33.74970489282789
+        },
+        {
+          "x": 269,
+          "y": 33.74970489282789
+        }
+      ],
+      "id": "wire-1782384707630",
+      "start": {
+        "componentId": "ds1302_1782384512037_n2nrajtwa",
+        "pinName": "CLK",
+        "x": 492.5738738269597,
+        "y": 64.8674678666415
+      },
+      "end": {
+        "componentId": "arduino-uno",
+        "pinName": "7",
+        "x": 254.27803758709058,
+        "y": 88.61388053780759
+      },
+      "color": "#22c55e"
+    },
+    {
+      "waypoints": [
+        {
+          "x": 279.4199998630236,
+          "y": 89
+        },
+        {
+          "x": 279.4199998630236,
+          "y": 17.858716710951743
+        },
+        {
+          "x": 508.5738738269597,
+          "y": 17.858716710951743
+        }
+      ],
+      "id": "wire-1782384747648",
+      "start": {
+        "componentId": "arduino-uno",
+        "pinName": "6",
+        "x": 263.7780375870906,
+        "y": 88.61388053780759
+      },
+      "end": {
+        "componentId": "ds1302_1782384512037_n2nrajtwa",
+        "pinName": "DAT",
+        "x": 508.5738738269597,
+        "y": 64.8674678666415
+      },
+      "color": "#0000cc"
+    },
+    {
+      "waypoints": [
+        {
+          "x": 296.12608272428207,
+          "y": 50.1014566331806
+        }
+      ],
+      "id": "wire-1782384782806",
+      "start": {
+        "componentId": "arduino-uno",
+        "pinName": "5",
+        "x": 273.2780375870906,
+        "y": 88.61388053780759
+      },
+      "end": {
+        "componentId": "ds1302_1782384512037_n2nrajtwa",
+        "pinName": "RST",
+        "x": 524.5738738269597,
+        "y": 64.8674678666415
+      },
+      "color": "#FF00FF"
+    },
+    {
+      "waypoints": [
+        {
+          "x": -61.665256205124344,
+          "y": 317.99236124025447
+        },
+        {
+          "x": 81.52573024395342,
+          "y": 317.99236124025447
+        },
+        {
+          "x": 81.52573024395342,
+          "y": 316.7041114386001
+        },
+        {
+          "x": 230,
+          "y": 316.7041114386001
+        }
+      ],
+      "id": "wire-1782384845522",
+      "start": {
+        "componentId": "rc522_rfid_1782384808153_6op580ugf",
+        "pinName": "3V3",
+        "x": -61.665256205124344,
+        "y": 120.51613609791055
+      },
+      "end": {
+        "componentId": "arduino-uno",
+        "pinName": "3.3V",
+        "x": 215.27803758709058,
+        "y": 271.1138805378076
+      },
+      "color": "#cc0000"
+    },
+    {
+      "waypoints": [
+        {
+          "x": -47.265256205124345,
+          "y": 92.86460419218342
+        },
+        {
+          "x": 250.25373168176776,
+          "y": 92.86460419218342
+        }
+      ],
+      "id": "wire-1782384863471",
+      "start": {
+        "componentId": "rc522_rfid_1782384808153_6op580ugf",
+        "pinName": "GND",
+        "x": -47.265256205124345,
+        "y": 120.51613609791055
+      },
+      "end": {
+        "componentId": "arduino-uno",
+        "pinName": "GND.2",
+        "x": 234.77803758709058,
+        "y": 271.1138805378076
+      },
+      "color": "#000000"
+    },
+    {
+      "waypoints": [
+        {
+          "x": -54.46525620512434,
+          "y": 33.74970489282789
+        },
+        {
+          "x": 243.75373168176776,
+          "y": 33.74970489282789
+        }
+      ],
+      "id": "wire-1782384873726",
+      "start": {
+        "componentId": "rc522_rfid_1782384808153_6op580ugf",
+        "pinName": "RST",
+        "x": -54.46525620512434,
+        "y": 120.51613609791055
+      },
+      "end": {
+        "componentId": "arduino-uno",
+        "pinName": "9",
+        "x": 228.27803758709058,
+        "y": 88.61388053780759
+      },
+      "color": "#FF8C00"
+    },
+    {
+      "waypoints": [
+        {
+          "x": -26.626578962750628,
+          "y": 120.51613609791055
+        },
+        {
+          "x": -26.626578962750628,
+          "y": 69.92541584296777
+        },
+        {
+          "x": 224.75373168176776,
+          "y": 69.92541584296777
+        }
+      ],
+      "id": "wire-1782384894426",
+      "start": {
+        "componentId": "rc522_rfid_1782384808153_6op580ugf",
+        "pinName": "MOSI",
+        "x": -25.665256205124344,
+        "y": 120.51613609791055
+      },
+      "end": {
+        "componentId": "arduino-uno",
+        "pinName": "11",
+        "x": 209.27803758709058,
+        "y": 88.61388053780759
+      },
+      "color": "#808080"
+    },
+    {
+      "waypoints": [
+        {
+          "x": -32.86525620512434,
+          "y": 45.29394103695579
+        },
+        {
+          "x": 215.25373168176776,
+          "y": 45.29394103695579
+        }
+      ],
+      "id": "wire-1782384905704",
+      "start": {
+        "componentId": "rc522_rfid_1782384808153_6op580ugf",
+        "pinName": "MISO",
+        "x": -32.86525620512434,
+        "y": 120.51613609791055
+      },
+      "end": {
+        "componentId": "arduino-uno",
+        "pinName": "12",
+        "x": 199.77803758709058,
+        "y": 88.61388053780759
+      },
+      "color": "#800080"
+    },
+    {
+      "waypoints": [
+        {
+          "x": -20.69268123434774,
+          "y": 120.51613609791055
+        },
+        {
+          "x": -20.69268123434774,
+          "y": 55.850287382389496
+        },
+        {
+          "x": 205.75373168176776,
+          "y": 55.850287382389496
+        }
+      ],
+      "id": "wire-1782384931018",
+      "start": {
+        "componentId": "rc522_rfid_1782384808153_6op580ugf",
+        "pinName": "SCK",
+        "x": -18.46525620512434,
+        "y": 120.51613609791055
+      },
+      "end": {
+        "componentId": "arduino-uno",
+        "pinName": "13",
+        "x": 190.27803758709058,
+        "y": 88.61388053780759
+      },
+      "color": "#FF00FF"
+    }
+  ],
+  "activeBoardId": "arduino-uno",
+  "ignoreStock": false
+}
